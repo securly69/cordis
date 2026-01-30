@@ -52,7 +52,7 @@ export default function Home() {
                       displayName={`${user.firstName} ${user.lastName || ""}`}
                       username={user.username || ""}
                       image={user.imageUrl}
-                      banner={null}
+                      banner={(user.publicMetadata?.banner as string) || null}
                       bio={(user.publicMetadata?.bio as string) || null}
                       quote={(user.publicMetadata?.quote as string) || null}
                       pronouns={(user.publicMetadata?.pronouns as string) || null}

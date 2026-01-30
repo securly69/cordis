@@ -26,8 +26,8 @@ export default function ProfileCard({
     online
 }: ProfileCardProps) {
     return (
-        <div className="w-[340px] rounded-lg overflow-hidden bg-[#313338] text-white shadow-xl">
-            <div className="relative h-[120px] bg-[#5865F2]">
+        <div className="w-[360px] bg-[#1E1F22] text-white rounded-xl shadow-2xl">
+            <div className="relative h-[120px] rounded-t-xl overflow-hidden bg-[#5865F2]">
                 {banner && (
                     <Image
                         src={banner}
@@ -37,73 +37,60 @@ export default function ProfileCard({
                         priority
                     />
                 )}
-                <div className="absolute -bottom-10 left-4">
-                    <div className="relative">
+            </div>
+
+            <div className="relative px-4 pb-4">
+                <div className="absolute -top-10 left-4">
+                    <div className="relative w-20 h-20 rounded-full border-[6px] border-[#1E1F22] overflow-hidden">
                         <Image
                             src={image}
                             alt="Avatar"
-                            width={80}
-                            height={80}
-                            className="rounded-full border-[6px] border-[#313338]"
+                            fill
+                            className="object-cover"
                         />
                         <span
-                            className={`absolute bottom-1 right-1 h-4 w-4 rounded-full border-[3px] border-[#313338] ${online ? 'bg-[#23A559]' : 'bg-[#80848E]'
+                            className={`absolute bottom-1 right-1 h-4 w-4 rounded-full border-[3px] border-[#1E1F22] ${online ? 'bg-[#23A559]' : 'bg-[#80848E]'
                                 }`}
                         />
                     </div>
-                </div>
-            </div>
 
-            <div className="pt-14 px-4 pb-4">
-                <div className="flex flex-col gap-1">
-                    <div className="text-xl font-semibold leading-none">
-                        {displayName}
+                    {quote && (
+                        <div className="absolute left-[90px] top-2 max-w-[220px] bg-[#2B2D31] text-sm px-3 py-2 rounded-lg">
+                            <span className="absolute left-[-6px] top-4 w-0 h-0 border-t-6 border-b-6 border-r-6 border-t-transparent border-b-transparent border-r-[#2B2D31]" />
+                            {quote}
+                        </div>
+                    )}
+                </div>
+
+                <div className="pt-14">
+                    <div className="flex items-center gap-2">
+                        <div className="text-xl font-semibold">
+                            {displayName}
+                        </div>
+                        {pronouns && (
+                            <span className="text-xs text-[#B5BAC1] bg-[#2B2D31] px-2 py-0.5 rounded">
+                                {pronouns}
+                            </span>
+                        )}
                     </div>
+
                     <div className="text-sm text-[#B5BAC1]">
                         @{username}
                     </div>
-                </div>
 
-                {quote && (
-                    <div className="mt-3 italic text-sm text-[#DBDEE1]">
-                        “{quote}”
-                    </div>
-                )}
-
-                <div className="mt-4 bg-[#2B2D31] rounded-md p-3 text-sm">
-                    <div className="flex flex-col gap-3">
-                        {pronouns && (
-                            <div>
-                                <div className="text-xs uppercase text-[#B5BAC1] font-semibold">
-                                    Pronouns
-                                </div>
-                                <div>{pronouns}</div>
-                            </div>
-                        )}
-
-                        {bio && (
-                            <div>
-                                <div className="text-xs uppercase text-[#B5BAC1] font-semibold">
-                                    About Me
-                                </div>
-                                <div className="text-[#DBDEE1] leading-snug">
-                                    {bio}
-                                </div>
-                            </div>
-                        )}
-
-                        <div>
-                            <div className="text-xs uppercase text-[#B5BAC1] font-semibold">
-                                Member Since
-                            </div>
-                            <div className="text-[#DBDEE1]">
-                                {new Date(memberSince).toLocaleDateString(undefined, {
-                                    month: 'long',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                })}
-                            </div>
+                    {bio && (
+                        <div className="mt-3 text-sm text-[#DBDEE1] leading-snug">
+                            {bio}
                         </div>
+                    )}
+
+                    <div className="mt-4 pt-3 border-t border-white/10 text-xs text-[#B5BAC1]">
+                        Member since{' '}
+                        {new Date(memberSince).toLocaleDateString(undefined, {
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric'
+                        })}
                     </div>
                 </div>
             </div>
