@@ -8,10 +8,13 @@
     "start": "next start"
   },
   "dependencies": {
+    "@clerk/elements": "^0.24.6",
     "@clerk/nextjs": "^6.36.10",
+    "lucide-react": "^0.563.0",
     "next": "16.1.4",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "stream-chat": "^9.30.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
