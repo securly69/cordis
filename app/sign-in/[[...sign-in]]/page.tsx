@@ -74,8 +74,9 @@ export default function SignInPage() {
                             <SignIn.Action submit className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-medium py-2.5 rounded transition-colors">
                                 Continue
                             </SignIn.Action>
-
-                            <SignIn.Captcha />
+                            <SignIn.Step name="sso-callback">
+                                <SignIn.Captcha />
+                            </SignIn.Step>
 
                             <div className="text-sm text-[#72767d] text-center">
                                 Need an account? <Link href="/sign-up" className="text-[#00aff4] hover:underline">Register</Link>
