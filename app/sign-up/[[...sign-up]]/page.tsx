@@ -201,7 +201,12 @@ export default function SignUpPage() {
                                             onComplete={(code) => {
                                                 const input = document.querySelector('input[name="code"]') as HTMLInputElement
                                                 if (input) {
-                                                    input.value = code
+                                                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                                                        window.HTMLInputElement.prototype,
+                                                        'value'
+                                                    )?.set
+                                                    nativeInputValueSetter?.call(input, code)
+
                                                     input.dispatchEvent(new Event('input', { bubbles: true }))
                                                     setTimeout(() => {
                                                         const form = input.closest('form')

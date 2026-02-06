@@ -9,12 +9,12 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'encrypted-tbn0.gstatic.com',
+        hostname: 'utfs.io',
       },
       {
         protocol: 'https',
-        hostname: 'wallpapers-clan.com',
-      },
+        hostname: 'getstream.io',
+      }
     ],
   },
 }

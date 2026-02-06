@@ -65,7 +65,7 @@ export default function ProfileCard({
 
                                 {/* Quote Text - Wrapped tightly with 'anywhere' */}
                                 <p className="text-gray-200 italic font-medium leading-tight [overflow-wrap:anywhere]">
-                                    &quot;{quote}&quot;
+                                    {quote}
                                 </p>
                             </div>
                         </div>
