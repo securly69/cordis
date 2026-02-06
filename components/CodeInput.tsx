@@ -80,10 +80,10 @@ export default function CodeInput({ length = 6, onComplete, error }: CodeInputPr
                         onPaste={handlePaste}
                         onClick={() => handleClick(index)}
                         className={`w-12 h-14 text-center text-2xl font-semibold bg-[#202225] border-b-2 ${error
-                                ? 'border-[#f04747]'
-                                : digit
-                                    ? 'border-[#00aff4]'
-                                    : 'border-[#4f545c]'
+                            ? 'border-[#f04747]'
+                            : digit
+                                ? 'border-[#00aff4]'
+                                : 'border-[#4f545c]'
                             } text-white rounded focus:outline-none focus:border-[#00aff4] transition-colors`}
                     />
                 ))}
