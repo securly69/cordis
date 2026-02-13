@@ -7,7 +7,7 @@ import Image from 'next/image'
 import { UploadButton } from "@/lib/uploadthing"
 import "@uploadthing/react/styles.css"
 
-export default function SetupProfilePage() {
+export default function EditProfilePage() {
     const { user, isLoaded } = useUser()
     const router = useRouter()
 
@@ -24,11 +24,27 @@ export default function SetupProfilePage() {
 
     useEffect(() => {
         if (!isLoaded || !user) return
-        if (user.publicMetadata?.profileSetupComplete) {
-            router.replace('/dashboard')
+
+        const profile = (user.publicMetadata?.profile as any) || {}
+
+        setDisplayName(profile.displayName || user.fullName || user.username || '')
+        setBio(profile.bio || '')
+        setQuote(profile.quote || '')
+        setPronouns(profile.pronouns || '')
+        setBanner(profile.banner || '')
+
+        // Logic to determine avatar type
+        const currentAvatar = profile.image || user.imageUrl
+        if (currentAvatar.includes('clerk.com')) {
+            setAvatarType('clerk')
+        } else if (currentAvatar.includes('getstream.io/random_png')) {
+            setAvatarType('stream')
+        } else {
+            setAvatarType('custom')
+            setCustomAvatar(currentAvatar)
         }
-        setDisplayName(user.fullName || user.username || '')
-    }, [isLoaded, user, router])
+
+    }, [isLoaded, user])
 
     const avatar = useMemo(() => {
         if (avatarType === 'custom' && customAvatar) return customAvatar
@@ -43,7 +59,7 @@ export default function SetupProfilePage() {
         if (!displayName || loading) return
         setLoading(true)
 
-        const res = await fetch('/api/profile/setup', {
+        const res = await fetch('/api/profile/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -56,7 +72,7 @@ export default function SetupProfilePage() {
             })
         })
 
-        if (res.ok) router.replace('/dashboard')
+        if (res.ok) router.push('/dashboard')
         setLoading(false)
     }
 
@@ -76,7 +92,7 @@ export default function SetupProfilePage() {
 
                     <div className="absolute top-2 right-2 opacity-80 hover:opacity-100 transition">
                         <UploadButton
-                            endpoint="bannerUploader" // Matches your FileRouter endpoint
+                            endpoint="bannerUploader"
                             onClientUploadComplete={(res) => setBanner(res[0].url)}
                             appearance={{
                                 button: "bg-[#313338] text-[10px] px-2 h-8 after:bg-none",
@@ -165,7 +181,13 @@ export default function SetupProfilePage() {
                         onClick={submit}
                         className="w-full bg-[#248046] hover:bg-[#1a6334] disabled:opacity-50 text-white py-2 rounded font-medium transition"
                     >
-                        {loading ? 'Saving...' : 'Complete Setup'}
+                        {loading ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button
+                        onClick={() => router.back()}
+                        className="w-full text-gray-400 hover:text-gray-200 text-sm transition"
+                    >
+                        Cancel
                     </button>
                 </div>
             </div>

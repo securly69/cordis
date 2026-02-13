@@ -1,53 +1,85 @@
 'use client'
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { SignedIn, SignedOut, useUser, SignOutButton } from "@clerk/nextjs"
 import ProfileCard from "@/components/ProfileCard"
+import { useStreamConnect } from "@/hooks/useStreamConnect"
+import { useTheme } from "next-themes"
 
 export default function Home() {
   const { user } = useUser()
+  const { connected } = useStreamConnect()
+  const { resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
   const [showProfile, setShowProfile] = useState(false)
+  const [typedText, setTypedText] = useState("")
+  const [featureIndex, setFeatureIndex] = useState(0)
+  const [charIndex, setCharIndex] = useState(0)
+  const features = [
+    "Real-time chat that just works.",
+    "Simple, safe sign-in.",
+    "Notifications — if you want them.",
+    "Dashboard for your chats."
+  ]
 
   const profile = user?.publicMetadata?.profile as {
-    banner?: string; bio?: string; quote?: string; pronouns?: string;
+    banner?: string; bio?: string; quote?: string; pronouns?: string; displayName?: string; image?: string;
   } | undefined
 
+  useEffect(() => setMounted(true), [])
+  const isDarkMode = mounted ? resolvedTheme === 'dark' : true
+
+  useEffect(() => {
+    if (user) return
+    const current = features[featureIndex]
+    if (charIndex < current.length) {
+      const t = setTimeout(() => {
+        setTypedText(prev => prev + current[charIndex])
+        setCharIndex(c => c + 1)
+      }, 80)
+      return () => clearTimeout(t)
+    } else {
+      const pause = setTimeout(() => {
+        setTypedText("")
+        setCharIndex(0)
+        setFeatureIndex(i => (i + 1) % features.length)
+      }, 2600)
+      return () => clearTimeout(pause)
+    }
+  }, [charIndex, featureIndex, user])
+
   return (
-    <div className="min-h-screen bg-[#404EED] font-sans selection:bg-black selection:text-[#404EED] overflow-x-hidden">
-      {/* Navigation */}
-      <nav className="relative z-50 w-full max-w-[1260px] mx-auto px-6 h-20 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="text-white text-2xl font-black tracking-tighter flex items-center gap-2">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <span className="text-[#404EED] text-xs">D</span>
-            </div>
-            Discord
-          </div>
+    <div className={`min-h-screen transition-colors ${isDarkMode ? 'bg-[#0b0f19] text-white' : 'bg-gray-100 text-gray-900'} font-sans overflow-x-hidden`}>
+      <div className="fixed inset-0 -z-10">
+        <div className={`absolute inset-0 ${isDarkMode 
+          ? "bg-[radial-gradient(circle_at_20%_20%,#5865F2_0%,transparent_25%),radial-gradient(circle_at_80%_0%,#404EED_0%,transparent_25%),radial-gradient(circle_at_50%_100%,#1e1f22_0%,transparent_30%)] opacity-40" 
+          : "bg-[radial-gradient(circle_at_20%_20%,#a3bffa_0%,transparent_25%),radial-gradient(circle_at_80%_0%,#9caaf7_0%,transparent_25%),radial-gradient(circle_at_50%_100%,#e5e7eb_0%,transparent_30%)] opacity-30"
+        }`} />
+      </div>
+
+      <nav className="relative z-50 w-full max-w-[1280px] mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="text-white w-9 h-9 rounded-2xl bg-gradient-to-br from-[#5865F2] to-[#404EED] flex items-center justify-center font-black">C</div>
+          <span className="font-extrabold tracking-tight text-xl">Cordis</span>
         </div>
 
         <div className="flex items-center gap-4">
           <SignedOut>
             <Link href="/sign-in">
-              <button className="hover:cursor-pointer bg-white text-black px-5 py-2 rounded-full font-medium text-sm hover:text-[#5865F2] transition-colors">
-                Login
-              </button>
+              <button className="hover:cursor-pointer px-5 py-2 rounded-full bg-white text-black font-semibold hover:bg-[#e6e6e6] transition">Sign In</button>
             </Link>
           </SignedOut>
 
           <SignedIn>
             <div className="flex items-center gap-4 relative">
               <SignOutButton>
-                <button className="text-white text-sm font-medium hover:cursor-pointer hover:underline">
-                  Sign Out
-                </button>
+                <button className="hover:cursor-pointer text-sm font-medium hover:underline">Sign Out</button>
               </SignOutButton>
 
-              <button
-                onClick={() => setShowProfile(!showProfile)}
-                className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-transparent hover:border-white hover:cursor-pointer transition-all"
-              >
-                <Image src={user?.imageUrl || ""} alt="Profile" fill />
+              <button onClick={() => setShowProfile(!showProfile)} className="hover:cursor-pointer relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/30 hover:ring-white transition">
+                <Image src={profile?.image || user?.imageUrl || ""} alt="Profile" fill />
               </button>
 
               {showProfile && user && (
@@ -55,15 +87,15 @@ export default function Home() {
                   <div className="fixed inset-0 z-[90]" onClick={() => setShowProfile(false)} />
                   <div className="absolute right-0 top-12 z-[101]">
                     <ProfileCard
-                      displayName={`${user.firstName} ${user.lastName || ""}`}
+                      displayName={profile?.displayName || user.fullName || user.username || ""}
                       username={user.username || ""}
-                      image={user.imageUrl}
-                      banner={profile?.banner || null}
+                      image={profile?.image || user.imageUrl}
+                      banner={profile?.banner || "https://singlecolorimage.com/get/171a20/1200x300"}
                       bio={profile?.bio || null}
                       quote={profile?.quote || null}
                       pronouns={profile?.pronouns || null}
                       memberSince={user.createdAt || new Date()}
-                      online={true}
+                      online={connected}
                     />
                   </div>
                 </>
@@ -73,79 +105,87 @@ export default function Home() {
         </div>
       </nav>
 
-      <main className="relative w-full">
-        {/* Background Image Layer */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/hero-bg.png"
-            alt="Background"
-            fill
-            className="object-cover object-bottom opacity-40 pointer-events-none"
-            priority
-          />
-        </div>
-
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-20 pb-24 min-h-[calc(100vh-80px)]">
-          <h1 className="text-white font-extrabold text-5xl md:text-7xl lg:text-8xl tracking-tight uppercase max-w-5xl leading-[0.95] mb-8">
-            {user ? `Welcome back, ${user.firstName}` : "Imagine a place..."}
+      <main className="relative w-full max-w-[1280px] mx-auto px-6 pt-20 pb-28">
+        <section className="text-center flex flex-col items-center">
+          <h1 className="font-extrabold text-6xl md:text-7xl lg:text-8xl tracking-tight leading-[0.95] mb-8 min-h-[120px]">
+            {user
+              ? `Welcome back, ${profile?.displayName || user.username || "User"}!`
+              : <>
+                  {typedText}
+                  <span className="ml-1 inline-block w-[2px] h-[0.9em] bg-current align-middle animate-caret" />
+                </>
+            }
           </h1>
 
-          <p className="text-white text-lg md:text-xl leading-relaxed max-w-2xl mb-12 opacity-90">
-            {user
-              ? "Your servers are waiting for you. Jump back into the conversation and see what your friends have been up to."
-              : "A place where you can belong to a school club, a gaming group, or a worldwide art community. Easy to talk every day and hang out more often."
-            }
-          </p>
+          <SignedIn>
+            <p className={`text-lg md:text-xl max-w-2xl opacity-80 mb-12 ${isDarkMode ? 'text-white/80' : 'text-gray-700'}`}>
+              Enjoy chatting!
+            </p>
+          </SignedIn>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center mb-20">
+          <SignedOut>
+            <p className={`text-lg md:text-xl max-w-2xl opacity-80 mb-12 ${isDarkMode ? 'text-white/80' : 'text-gray-700'}`}>
+              Sign up to start chatting!
+            </p>
+          </SignedOut>
+
+          <div className="flex flex-col sm:flex-row gap-4 mb-16 w-full justify-center">
             <SignedIn>
               <Link href="/dashboard">
-                <button className="bg-white text-black text-xl px-10 py-4 rounded-full font-medium hover:text-[#5865F2] hover:cursor-pointer hover:shadow-2xl transition-all w-full sm:w-auto">
-                  Open Discord
+                <button className="text-white hover:cursor-pointer bg-gradient-to-r from-[#5865F2] to-[#404EED] px-10 py-4 rounded-2xl text-lg font-semibold shadow-2xl hover:scale-[1.03] transition">
+                  Open Dashboard
                 </button>
               </Link>
             </SignedIn>
 
             <SignedOut>
               <Link href="/sign-up">
-                <button className="bg-white text-black text-xl px-10 py-4 rounded-full font-medium hover:text-[#5865F2] hover:cursor-pointer hover:shadow-2xl transition-all w-full sm:w-auto">
-                  Sign Up Now
+                <button className="text-white hover:cursor-pointer bg-gradient-to-r from-[#5865F2] to-[#404EED] px-10 py-4 rounded-2xl text-lg font-semibold shadow-2xl hover:scale-[1.03] transition">
+                  Get Started
                 </button>
               </Link>
-              <button className="bg-[#23272A] text-white text-xl px-10 py-4 rounded-full font-medium hover:bg-[#363a3f] hover:cursor-pointer transition-all w-full sm:w-auto">
-                Download for Mac
-              </button>
+              <Link href="/sign-in">
+                <button className={`hover:cursor-pointer px-10 py-4 rounded-2xl text-lg font-semibold transition ${isDarkMode ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-200 hover:bg-gray-300 text-black'}`}>
+                  Sign In
+                </button>
+              </Link>
             </SignedOut>
           </div>
+        </section>
 
-          {/* Feature List - Only visible when Signed Out */}
-          <SignedOut>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full text-left mt-10">
-              <FeatureItem
-                title="Invite-only places"
-                desc="Discord servers are organized into topic-based channels where you can collaborate and share."
-              />
-              <FeatureItem
-                title="Where hanging out is easy"
-                desc="Grab a seat in a voice channel when you’re free. Friends in your server can see you’re around."
-              />
-              <FeatureItem
-                title="From few to a fandom"
-                desc="Get any community running with moderation tools and custom member access."
-              />
-            </div>
-          </SignedOut>
-        </div>
+        <section className="grid md:grid-cols-3 gap-8 mt-10">
+          <FeatureCard title="Notifications — if you want them" desc="Turn on push in your browser and get pinged for new messages. No pressure, zero spam." icon="🔔" darkMode={isDarkMode} />
+          <FeatureCard title="Clean UI" desc="See all chats cleanly and efficiently. No interruptions." icon="✨" darkMode={isDarkMode} />
+          <FeatureCard title="Real-time messaging" desc="Instant delivery, typing indicators, presence, and smooth performance everywhere." icon="⚡" darkMode={isDarkMode} />
+        </section>
+
+        <section className="mt-24 grid lg:grid-cols-2 gap-12 items-center">
+          <div className={`${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-3xl p-10 backdrop-blur-xl shadow-2xl`}>
+            <h2 className="text-3xl font-bold mb-4">Simple, safe sign-in</h2>
+            <p className="opacity-80 leading-relaxed">
+              Sign in with your favorite account. No passwords to remember, no friction. Secure authentication that just works.
+            </p>
+          </div>
+
+          <div className={`${isDarkMode ? 'bg-gradient-to-br from-[#5865F2]/30 to-[#404EED]/20 border-white/10' : 'bg-gradient-to-br from-blue-200/30 to-blue-400/20 border-gray-200'} rounded-3xl p-10 backdrop-blur-xl shadow-2xl`}>
+            <h2 className="text-3xl font-bold mb-4">One clean dashboard</h2>
+            <p className="opacity-80 leading-relaxed">
+              Find out what you missed while you were away. Manage notifications and preferences from a single advanced interface designed for speed and clarity.
+            </p>
+          </div>
+        </section>
       </main>
     </div>
-  );
+  )
 }
 
-function FeatureItem({ title, desc }: { title: string, desc: string }) {
+function FeatureCard({ title, desc, icon, darkMode }: { title: string, desc: string, icon: string, darkMode: boolean }) {
   return (
-    <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20">
-      <h3 className="text-white text-xl font-bold mb-3">{title}</h3>
-      <p className="text-white/80 leading-relaxed">{desc}</p>
+    <div className={`group relative rounded-3xl p-8 backdrop-blur-xl shadow-xl transition ${darkMode ? 'bg-white/5 border border-white/10 hover:bg-white/10' : 'bg-white border border-gray-200 hover:bg-gray-50'}`}>
+      <div className="text-4xl mb-4">{icon}</div>
+      <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
+      <p className={`opacity-80 leading-relaxed ${darkMode ? 'text-white/80' : 'text-gray-700'}`}>{desc}</p>
+      <div className={`absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition ${darkMode ? 'bg-gradient-to-br from-[#5865F2]/20 to-transparent pointer-events-none' : 'bg-gradient-to-br from-blue-200/20 to-transparent pointer-events-none'}`} />
     </div>
   )
 }

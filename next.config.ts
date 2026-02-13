@@ -14,6 +14,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'getstream.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'singlecolorimage.com',
       }
     ],
   },

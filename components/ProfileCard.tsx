@@ -47,7 +47,7 @@ export default function ProfileCard({
                     </div>
                     {/* Quote Bubble Section */}
                     {quote && (
-                        <div className="absolute left-[92px] top-4 z-20 w-max min-w-[80px] max-w-[210px]">
+                        <div className="absolute left-[92px] top-4 z-20 w-max min-w-[40px] max-w-[210px]">
                             {/* Main Bubble */}
                             <div className="relative bg-[#2B2D31] text-[13px] p-2.5 rounded-xl shadow-2xl border border-white/5 flex items-start gap-2">
 
@@ -58,10 +58,7 @@ export default function ProfileCard({
                 border-b-[6px] border-b-transparent"
                                 />
 
-                                {/* Plus Icon - flex-shrink-0 is vital to prevent squishing */}
-                                <div className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full bg-[#4E5058] flex items-center justify-center">
-                                    <span className="text-[10px] font-bold text-gray-200">+</span>
-                                </div>
+
 
                                 {/* Quote Text - Wrapped tightly with 'anywhere' */}
                                 <p className="text-gray-200 italic font-medium leading-tight [overflow-wrap:anywhere]">
