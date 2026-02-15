@@ -48,7 +48,7 @@ export default function Dashboard() {
 
     // --- Logic: Delete Account ---
     const handleDeleteAccount = async () => {
-        const confirmed = confirm("Are you sure? This will permanently delete your Clerk and Stream data.")
+        const confirmed = confirm("Are you sure? This will permanently delete your data.")
         if (!confirmed) return
 
         setIsDeleting(true)
@@ -82,7 +82,7 @@ export default function Dashboard() {
                     <div className="flex items-center gap-5">
                         <img src={user.imageUrl} alt="Profile" className="h-16 w-16 rounded-full ring-4 ring-[#5865F2]/40" />
                         <div>
-                            <h1 className="text-4xl font-bold">Welcome, {name}</h1>
+                            <h1 className="text-4xl font-bold">Welcome back, {name}!</h1>
                             <p className={isDarkMode ? "text-[#b5bac1]" : "text-gray-500"}>
                                 Last login: {daysAgo === 0 ? 'Today' : `${daysAgo} days ago`}
                             </p>
@@ -124,7 +124,7 @@ export default function Dashboard() {
                         <button
                             onClick={handleDeleteAccount}
                             disabled={isDeleting}
-                            className="w-full py-2 text-sm font-semibold text-red-500 hover:bg-red-500/10 rounded-lg transition"
+                            className="hover:cursor-pointer w-full py-2 text-sm font-semibold text-red-500 hover:bg-red-500/10 rounded-lg transition"
                         >
                             {isDeleting ? "Deleting..." : "Delete Account"}
                         </button>

@@ -135,7 +135,7 @@ export default function SignUpPage() {
                             </SignUp.Action>
 
                             <div className="text-xs text-[#72767d]">
-                                By registering, you agree to Discord's{' '}
+                                By registering, you agree to Cordis's{' '}
                                 <Link href="/tos" className="text-[#00aff4] hover:underline">
                                     Terms of Service
                                 </Link>{' '}
