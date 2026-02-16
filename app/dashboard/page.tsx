@@ -92,7 +92,7 @@ export default function Dashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* MAIN NAVIGATION */}
-                    <Link href="/channels/@me" className="md:col-span-2 bg-gradient-to-br from-[#5865F2] to-[#7983f5] p-8 rounded-3xl shadow-xl hover:scale-[1.01] transition text-white">
+                    <Link href="/channels/me" className="md:col-span-2 bg-gradient-to-br from-[#5865F2] to-[#7983f5] p-8 rounded-3xl shadow-xl hover:scale-[1.01] transition text-white">
                         <h2 className="text-3xl font-bold mb-2">Direct Messages</h2>
                         <div className="text-5xl font-black">{unreadCount}</div>
                         <p className="opacity-80">Unread messages</p>
