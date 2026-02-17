@@ -200,7 +200,7 @@ export default function Sidebar({ active, online = false }: SidebarProps) {
                   textOverflow: 'ellipsis',
                 }}
               >
-                {statusText}
+                @{user?.username}
               </Typography>
             </Box>
 
