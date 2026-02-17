@@ -10,6 +10,11 @@
   "dependencies": {
     "@clerk/elements": "^0.24.6",
     "@clerk/nextjs": "^6.36.10",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.8",
+    "@mui/material": "^7.3.8",
+    "@mui/material-nextjs": "^7.3.8",
     "@uploadthing/react": "^7.3.3",
     "lucide-react": "^0.563.0",
     "next": "16.1.4",

@@ -1,150 +1,204 @@
 'use client'
 
-import { useUser, useClerk } from '@clerk/nextjs'
+import { type ReactNode } from 'react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { useStreamConnect } from '@/hooks/useStreamConnect'
-import { useTheme } from "next-themes"
+import { SignInButton, SignedIn, SignedOut, useUser } from '@clerk/nextjs'
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material'
+import ForumRoundedIcon from '@mui/icons-material/ForumRounded'
+import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded'
+import MarkChatUnreadRoundedIcon from '@mui/icons-material/MarkChatUnreadRounded'
+import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
+import Sidebar from '@/components/Sidebar'
+import { useChatSnapshot } from '@/hooks/useChatSnapshot'
 
-export default function Dashboard() {
-    const { user, isLoaded } = useUser()
-    const { signOut } = useClerk()
-    const { client, connected } = useStreamConnect()
+function StatCard({
+  title,
+  value,
+  description,
+  icon,
+}: {
+  title: string
+  value: string | number
+  description: string
+  icon: ReactNode
+}) {
+  return (
+    <Paper
+      sx={{
+        p: 2,
+        borderRadius: 3,
+        border: '1px solid',
+        borderColor: 'divider',
+        minHeight: 150,
+      }}
+    >
+      <Stack direction="row" spacing={1.2} alignItems="center">
+        <Box
+          sx={(theme) => ({
+            width: 38,
+            height: 38,
+            borderRadius: 2,
+            display: 'grid',
+            placeItems: 'center',
+            bgcolor:
+              theme.palette.mode === 'dark'
+                ? 'rgba(88,101,242,0.24)'
+                : 'rgba(88,101,242,0.12)',
+            color: 'primary.main',
+          })}
+        >
+          {icon}
+        </Box>
+        <Typography variant="subtitle1" fontWeight={700}>
+          {title}
+        </Typography>
+      </Stack>
 
-    // Theme Hook
-    const { resolvedTheme, setTheme } = useTheme()
-    const [mounted, setMounted] = useState(false)
+      <Typography variant="h5" sx={{ mt: 2, mb: 0.5 }}>
+        {value}
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        {description}
+      </Typography>
+    </Paper>
+  )
+}
 
-    // States for Preferences
-    const [unreadCount, setUnreadCount] = useState(0)
-    const [notifications, setNotifications] = useState(true)
-    const [isDeleting, setIsDeleting] = useState(false)
+export default function DashboardPage() {
+  const { user } = useUser()
+  const { snapshot, loading, error, connected } = useChatSnapshot()
 
-    useEffect(() => {
-        setMounted(true)
-    }, [])
+  const profile = user?.publicMetadata?.profile as {
+    banner?: string; bio?: string; quote?: string; pronouns?: string; displayName?: string; image?: string;
+  } | undefined
 
-    useEffect(() => {
-        if (connected && client?.user) {
-            setUnreadCount((client.user as any).total_unread_count || 0)
-        }
-    }, [connected, client])
+  const displayName = profile?.displayName || user?.fullName || user?.username || 'User'
+  const imageSrc = profile?.image || user?.imageUrl || undefined
+  const lastLogin = user?.lastSignInAt
+    ? new Date(user.lastSignInAt).toLocaleString()
+    : 'Unavailable'
 
-    if (!isLoaded || !user) {
-        return (
-            <div className="min-h-screen bg-[#1e1f22] flex items-center justify-center">
-                <div className="h-12 w-12 border-4 border-[#5865F2] border-t-transparent rounded-full animate-spin" />
-            </div>
-        )
-    }
+  return (
+    <>
+      <SignedOut>
+        <Box
+          sx={{
+            minHeight: '100vh',
+            display: 'grid',
+            placeItems: 'center',
+            p: 3,
+          }}
+        >
+          <Paper sx={{ p: 3, maxWidth: 420 }}>
+            <Typography variant="h5" fontWeight={800}>
+              Sign in required
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1.1, mb: 2.5 }}>
+              The dashboard is available for signed-in users only.
+            </Typography>
+            <SignInButton mode="modal">
+              <Button variant="contained">Sign In</Button>
+            </SignInButton>
+          </Paper>
+        </Box>
+      </SignedOut>
 
-    // Use resolvedTheme to determine dark mode status. 
-    // Default to true (dark) if not mounted to prevent flash or match default.
-    const isDarkMode = mounted ? resolvedTheme === 'dark' : true
+      <SignedIn>
+        <Box
+          sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            background:
+              'radial-gradient(circle at 15% 0%, rgba(88,101,242,0.18), transparent 42%), radial-gradient(circle at 88% 100%, rgba(59,165,93,0.16), transparent 42%)',
+          }}
+        >
+          <Sidebar active="dashboard" online={connected} />
 
-    // --- Logic: Last Login Calculation ---
-    const lastSignIn = user.lastSignInAt ? new Date(user.lastSignInAt) : new Date()
-    const daysAgo = Math.floor((new Date().getTime() - lastSignIn.getTime()) / (1000 * 60 * 60 * 24))
+          <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 } }}>
+            <Paper
+              sx={(theme) => ({
+                p: { xs: 2, md: 2.5 },
+                borderRadius: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                background:
+                  theme.palette.mode === 'dark'
+                    ? 'linear-gradient(140deg, rgba(88,101,242,0.24) 0%, rgba(43,45,49,1) 72%)'
+                    : 'linear-gradient(140deg, rgba(88,101,242,0.14) 0%, rgba(255,255,255,1) 72%)',
+              })}
+            >
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={2}
+                alignItems={{ xs: 'flex-start', md: 'center' }}
+                justifyContent="space-between"
+              >
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Avatar src={imageSrc} alt={displayName} sx={{ width: 66, height: 66 }} />
+                  <Box>
+                    <Typography variant="h4">Welcome back, {displayName}!</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {"Find out what's happening since last time you logged in"}
+                    </Typography>
+                  </Box>
+                </Stack>
 
-    // --- Logic: Delete Account ---
-    const handleDeleteAccount = async () => {
-        const confirmed = confirm("Are you sure? This will permanently delete your data.")
-        if (!confirmed) return
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    variant="contained"
+                    LinkComponent={Link}
+                    href="/channels/me"
+                    startIcon={<ForumRoundedIcon />}
+                  >
+                    Open Friends
+                  </Button>
+                </Stack>
+              </Stack>
+            </Paper>
 
-        setIsDeleting(true)
-        try {
-            const response = await fetch('/api/user/delete', {
-                method: 'POST',
-                body: JSON.stringify({ userId: user.id }),
-            })
+            <Box
+              sx={{
+                mt: 2.2,
+                display: 'grid',
+                gap: 2,
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  md: 'repeat(3, minmax(0, 1fr))',
+                },
+              }}
+            >
+              <StatCard
+                title="Friends Online"
+                value={loading ? '...' : snapshot.onlineFriends}
+                description="Currently active friend(s) at the moment."
+                icon={<GroupsRoundedIcon />}
+              />
 
-            if (response.ok) {
-                await signOut() // Sign out the user locally after deletion
-                window.location.href = "/"
-            } else {
-                alert("Failed to delete account. Please try again.")
-            }
-        } catch (error) {
-            console.error("Deletion error:", error)
-        } finally {
-            setIsDeleting(false)
-        }
-    }
+              <StatCard
+                title="Unread Messages"
+                value={loading ? '...' : snapshot.unreadMessages}
+                description="Message(s) you have not opened yet."
+                icon={<MarkChatUnreadRoundedIcon />}
+              />
 
-    const name = (user.publicMetadata?.profile as any)?.displayName || user.firstName || 'User'
-
-    return (
-        <div className={`min-h-screen transition-colors ${isDarkMode ? 'bg-[#1e1f22] text-white' : 'bg-gray-100 text-gray-900'}`}>
-            <div className="max-w-5xl mx-auto px-6 py-12 space-y-10">
-
-                {/* HEADER */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-5">
-                        <img src={user.imageUrl} alt="Profile" className="h-16 w-16 rounded-full ring-4 ring-[#5865F2]/40" />
-                        <div>
-                            <h1 className="text-4xl font-bold">Welcome back, {name}!</h1>
-                            <p className={isDarkMode ? "text-[#b5bac1]" : "text-gray-500"}>
-                                Last login: {daysAgo === 0 ? 'Today' : `${daysAgo} days ago`}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* MAIN NAVIGATION */}
-                    <Link href="/channels/me" className="md:col-span-2 bg-gradient-to-br from-[#5865F2] to-[#7983f5] p-8 rounded-3xl shadow-xl hover:scale-[1.01] transition text-white">
-                        <h2 className="text-3xl font-bold mb-2">Direct Messages</h2>
-                        <div className="text-5xl font-black">{unreadCount}</div>
-                        <p className="opacity-80">Unread messages</p>
-                    </Link>
-
-                    {/* PREFERENCES CORNER */}
-                    <div className={`${isDarkMode ? 'bg-[#2b2d31]' : 'bg-white'} p-6 rounded-3xl shadow-xl space-y-4`}>
-                        <h3 className="font-bold text-xl mb-4">Preferences</h3>
-
-                        <div className="flex items-center justify-between">
-                            <span>Dark Mode</span>
-                            <button
-                                onClick={() => setTheme(isDarkMode ? 'light' : 'dark')}
-                                className={`hover:cursor-pointer w-12 h-6 rounded-full transition ${isDarkMode ? 'bg-[#5865F2]' : 'bg-gray-400'} relative`}
-                            >
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isDarkMode ? 'left-7' : 'left-1'}`} />
-                            </button>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                            <span>Notifications</span>
-                            <button onClick={() => setNotifications(!notifications)} className={`hover:cursor-pointer w-12 h-6 rounded-full transition ${notifications ? 'bg-green-500' : 'bg-gray-400'} relative`}>
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${notifications ? 'left-7' : 'left-1'}`} />
-                            </button>
-                        </div>
-
-                        <hr className={isDarkMode ? "border-gray-700" : "border-gray-200"} />
-
-                        <button
-                            onClick={handleDeleteAccount}
-                            disabled={isDeleting}
-                            className="hover:cursor-pointer w-full py-2 text-sm font-semibold text-red-500 hover:bg-red-500/10 rounded-lg transition"
-                        >
-                            {isDeleting ? "Deleting..." : "Delete Account"}
-                        </button>
-                    </div>
-                </div>
-
-                {/* SECONDARY NAVIGATION */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Link href="/channels" className={`${isDarkMode ? 'bg-[#2b2d31] hover:bg-[#32353b]' : 'bg-white hover:bg-gray-50'} p-8 rounded-3xl shadow-xl transition`}>
-                        <h2 className="text-3xl font-bold mb-2">Channels</h2>
-                        <p className={isDarkMode ? "text-[#b5bac1]" : "text-gray-500"}>Browse servers and group chats</p>
-                    </Link>
-
-                    <div className="flex items-end justify-end">
-                        <Link href="/edit-user" className="bg-[#5865F2] hover:bg-[#4752c4] text-white px-8 py-4 rounded-2xl font-bold transition shadow-lg">
-                            Edit Profile
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
+              <StatCard
+                title="Last Login"
+                value={lastLogin}
+                description="Your last sign-in date and time"
+                icon={<HistoryRoundedIcon />}
+              />
+            </Box>
+          </Box>
+        </Box>
+      </SignedIn>
+    </>
+  )
 }

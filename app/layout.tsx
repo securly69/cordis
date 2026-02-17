@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter'
 import './globals.css'
 
 const geistSans = Geist({
@@ -24,14 +25,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+          <AppRouterCacheProvider>
+            <ThemeProvider>
+              {children}
+            </ThemeProvider>
+          </AppRouterCacheProvider>
         </body>
       </html>
     </ClerkProvider>

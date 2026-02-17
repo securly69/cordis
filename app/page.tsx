@@ -5,18 +5,16 @@ import Link from "next/link"
 import { SignedIn, SignedOut, useUser, SignOutButton } from "@clerk/nextjs"
 import ProfileCard from "@/components/ProfileCard"
 import { useStreamConnect } from "@/hooks/useStreamConnect"
-import { useTheme } from "next-themes"
 
 export default function Home() {
   const { user } = useUser()
-  const { connected } = useStreamConnect()
-  const { resolvedTheme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
   const [showProfile, setShowProfile] = useState(false)
-  const [typedText, setTypedText] = useState("")
-  const [featureIndex, setFeatureIndex] = useState(0)
-  const [charIndex, setCharIndex] = useState(0)
+  const { connected } = useStreamConnect()
+
+  const profile = user?.publicMetadata?.profile as {
+    banner?: string; bio?: string; quote?: string; pronouns?: string; displayName?: string; image?: string;
+  } | undefined
+
   const features = [
     "Real-time chat that just works.",
     "Simple, safe sign-in.",
@@ -24,16 +22,15 @@ export default function Home() {
     "Dashboard for your chats."
   ]
 
-  const profile = user?.publicMetadata?.profile as {
-    banner?: string; bio?: string; quote?: string; pronouns?: string; displayName?: string; image?: string;
-  } | undefined
-
-  useEffect(() => setMounted(true), [])
-  const isDarkMode = mounted ? resolvedTheme === 'dark' : true
+  const [typedText, setTypedText] = useState("")
+  const [featureIndex, setFeatureIndex] = useState(0)
+  const [charIndex, setCharIndex] = useState(0)
 
   useEffect(() => {
     if (user) return
+
     const current = features[featureIndex]
+
     if (charIndex < current.length) {
       const t = setTimeout(() => {
         setTypedText(prev => prev + current[charIndex])
@@ -51,17 +48,14 @@ export default function Home() {
   }, [charIndex, featureIndex, user])
 
   return (
-    <div className={`min-h-screen transition-colors ${isDarkMode ? 'bg-[#0b0f19] text-white' : 'bg-gray-100 text-gray-900'} font-sans overflow-x-hidden`}>
+    <div className="min-h-screen bg-[#0b0f19] text-white font-sans overflow-x-hidden">
       <div className="fixed inset-0 -z-10">
-        <div className={`absolute inset-0 ${isDarkMode 
-          ? "bg-[radial-gradient(circle_at_20%_20%,#5865F2_0%,transparent_25%),radial-gradient(circle_at_80%_0%,#404EED_0%,transparent_25%),radial-gradient(circle_at_50%_100%,#1e1f22_0%,transparent_30%)] opacity-40" 
-          : "bg-[radial-gradient(circle_at_20%_20%,#a3bffa_0%,transparent_25%),radial-gradient(circle_at_80%_0%,#9caaf7_0%,transparent_25%),radial-gradient(circle_at_50%_100%,#e5e7eb_0%,transparent_30%)] opacity-30"
-        }`} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,#5865F2_0%,transparent_25%),radial-gradient(circle_at_80%_0%,#404EED_0%,transparent_25%),radial-gradient(circle_at_50%_100%,#1e1f22_0%,transparent_30%)] opacity-40" />
       </div>
 
       <nav className="relative z-50 w-full max-w-[1280px] mx-auto px-6 h-20 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="text-white w-9 h-9 rounded-2xl bg-gradient-to-br from-[#5865F2] to-[#404EED] flex items-center justify-center font-black">C</div>
+          <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#5865F2] to-[#404EED] flex items-center justify-center font-black">C</div>
           <span className="font-extrabold tracking-tight text-xl">Cordis</span>
         </div>
 
@@ -112,19 +106,19 @@ export default function Home() {
               ? `Welcome back, ${profile?.displayName || user.username || "User"}!`
               : <>
                   {typedText}
-                  <span className="ml-1 inline-block w-[2px] h-[0.9em] bg-current align-middle animate-caret" />
+                  <span className="ml-1 inline-block w-[2px] h-[0.9em] bg-white align-middle animate-caret" />
                 </>
             }
           </h1>
 
           <SignedIn>
-            <p className={`text-lg md:text-xl max-w-2xl opacity-80 mb-12 ${isDarkMode ? 'text-white/80' : 'text-gray-700'}`}>
+            <p className="text-lg md:text-xl max-w-2xl opacity-80 mb-12">
               Enjoy chatting!
             </p>
           </SignedIn>
 
           <SignedOut>
-            <p className={`text-lg md:text-xl max-w-2xl opacity-80 mb-12 ${isDarkMode ? 'text-white/80' : 'text-gray-700'}`}>
+            <p className="text-lg md:text-xl max-w-2xl opacity-80 mb-12">
               Sign up to start chatting!
             </p>
           </SignedOut>
@@ -132,7 +126,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 mb-16 w-full justify-center">
             <SignedIn>
               <Link href="/dashboard">
-                <button className="text-white hover:cursor-pointer bg-gradient-to-r from-[#5865F2] to-[#404EED] px-10 py-4 rounded-2xl text-lg font-semibold shadow-2xl hover:scale-[1.03] transition">
+                <button className="hover:cursor-pointer bg-gradient-to-r from-[#5865F2] to-[#404EED] px-10 py-4 rounded-2xl text-lg font-semibold shadow-2xl hover:scale-[1.03] transition">
                   Open Dashboard
                 </button>
               </Link>
@@ -140,12 +134,12 @@ export default function Home() {
 
             <SignedOut>
               <Link href="/sign-up">
-                <button className="text-white hover:cursor-pointer bg-gradient-to-r from-[#5865F2] to-[#404EED] px-10 py-4 rounded-2xl text-lg font-semibold shadow-2xl hover:scale-[1.03] transition">
+                <button className="hover:cursor-pointer bg-gradient-to-r from-[#5865F2] to-[#404EED] px-10 py-4 rounded-2xl text-lg font-semibold shadow-2xl hover:scale-[1.03] transition">
                   Get Started
                 </button>
               </Link>
               <Link href="/sign-in">
-                <button className={`hover:cursor-pointer px-10 py-4 rounded-2xl text-lg font-semibold transition ${isDarkMode ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-200 hover:bg-gray-300 text-black'}`}>
+                <button className="hover:cursor-pointer bg-white/10 backdrop-blur px-10 py-4 rounded-2xl text-lg font-semibold hover:bg-white/20 transition">
                   Sign In
                 </button>
               </Link>
@@ -154,20 +148,20 @@ export default function Home() {
         </section>
 
         <section className="grid md:grid-cols-3 gap-8 mt-10">
-          <FeatureCard title="Notifications — if you want them" desc="Turn on push in your browser and get pinged for new messages. No pressure, zero spam." icon="🔔" darkMode={isDarkMode} />
-          <FeatureCard title="Clean UI" desc="See all chats cleanly and efficiently. No interruptions." icon="✨" darkMode={isDarkMode} />
-          <FeatureCard title="Real-time messaging" desc="Instant delivery, typing indicators, presence, and smooth performance everywhere." icon="⚡" darkMode={isDarkMode} />
+          <FeatureCard title="Notifications — if you want them" desc="Turn on push in your browser and get pinged for new messages. No pressure, zero spam." icon="🔔" />
+          <FeatureCard title="Clean UI" desc="See all chats cleanly and efficiently. No interruptions." icon="✨" />
+          <FeatureCard title="Real-time messaging" desc="Instant delivery, typing indicators, presence, and smooth performance everywhere." icon="⚡" />
         </section>
 
         <section className="mt-24 grid lg:grid-cols-2 gap-12 items-center">
-          <div className={`${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-3xl p-10 backdrop-blur-xl shadow-2xl`}>
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-xl shadow-2xl">
             <h2 className="text-3xl font-bold mb-4">Simple, safe sign-in</h2>
             <p className="opacity-80 leading-relaxed">
               Sign in with your favorite account. No passwords to remember, no friction. Secure authentication that just works.
             </p>
           </div>
 
-          <div className={`${isDarkMode ? 'bg-gradient-to-br from-[#5865F2]/30 to-[#404EED]/20 border-white/10' : 'bg-gradient-to-br from-blue-200/30 to-blue-400/20 border-gray-200'} rounded-3xl p-10 backdrop-blur-xl shadow-2xl`}>
+          <div className="bg-gradient-to-br from-[#5865F2]/30 to-[#404EED]/20 border border-white/10 rounded-3xl p-10 backdrop-blur-xl shadow-2xl">
             <h2 className="text-3xl font-bold mb-4">One clean dashboard</h2>
             <p className="opacity-80 leading-relaxed">
               Find out what you missed while you were away. Manage notifications and preferences from a single advanced interface designed for speed and clarity.
@@ -179,13 +173,13 @@ export default function Home() {
   )
 }
 
-function FeatureCard({ title, desc, icon, darkMode }: { title: string, desc: string, icon: string, darkMode: boolean }) {
+function FeatureCard({ title, desc, icon }: { title: string, desc: string, icon: string }) {
   return (
-    <div className={`group relative rounded-3xl p-8 backdrop-blur-xl shadow-xl transition ${darkMode ? 'bg-white/5 border border-white/10 hover:bg-white/10' : 'bg-white border border-gray-200 hover:bg-gray-50'}`}>
+    <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover:bg-white/10 transition shadow-xl">
       <div className="text-4xl mb-4">{icon}</div>
-      <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
-      <p className={`opacity-80 leading-relaxed ${darkMode ? 'text-white/80' : 'text-gray-700'}`}>{desc}</p>
-      <div className={`absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition ${darkMode ? 'bg-gradient-to-br from-[#5865F2]/20 to-transparent pointer-events-none' : 'bg-gradient-to-br from-blue-200/20 to-transparent pointer-events-none'}`} />
+      <h3 className="text-xl font-bold mb-3">{title}</h3>
+      <p className="opacity-80 leading-relaxed">{desc}</p>
+      <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-[#5865F2]/20 to-transparent pointer-events-none" />
     </div>
   )
 }

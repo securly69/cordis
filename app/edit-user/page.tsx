@@ -1,196 +1,43 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
-import Image from 'next/image'
-import { UploadButton } from "@/lib/uploadthing"
-import "@uploadthing/react/styles.css"
+import { SignInButton, SignedIn, SignedOut } from '@clerk/nextjs'
+import { Box, Button, Paper, Typography } from '@mui/material'
+import UserSettingsModal from '@/components/UserSettingsModal'
 
 export default function EditProfilePage() {
-    const { user, isLoaded } = useUser()
-    const router = useRouter()
+  const router = useRouter()
+  const [open, setOpen] = useState(true)
 
-    const [displayName, setDisplayName] = useState('')
-    const [bio, setBio] = useState('')
-    const [quote, setQuote] = useState('')
-    const [pronouns, setPronouns] = useState('')
+  const handleClose = () => {
+    setOpen(false)
+    router.replace('/dashboard')
+  }
 
-    // Media States
-    const [banner, setBanner] = useState('')
-    const [customAvatar, setCustomAvatar] = useState('')
-    const [avatarType, setAvatarType] = useState<'clerk' | 'stream' | 'custom'>('clerk')
-    const [loading, setLoading] = useState(false)
+  return (
+    <>
+      <SignedIn>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+          <UserSettingsModal open={open} onClose={handleClose} />
+        </Box>
+      </SignedIn>
 
-    useEffect(() => {
-        if (!isLoaded || !user) return
-
-        const profile = (user.publicMetadata?.profile as any) || {}
-
-        setDisplayName(profile.displayName || user.fullName || user.username || '')
-        setBio(profile.bio || '')
-        setQuote(profile.quote || '')
-        setPronouns(profile.pronouns || '')
-        setBanner(profile.banner || '')
-
-        // Logic to determine avatar type
-        const currentAvatar = profile.image || user.imageUrl
-        if (currentAvatar.includes('clerk.com')) {
-            setAvatarType('clerk')
-        } else if (currentAvatar.includes('getstream.io/random_png')) {
-            setAvatarType('stream')
-        } else {
-            setAvatarType('custom')
-            setCustomAvatar(currentAvatar)
-        }
-
-    }, [isLoaded, user])
-
-    const avatar = useMemo(() => {
-        if (avatarType === 'custom' && customAvatar) return customAvatar
-        if (avatarType === 'stream') {
-            const letter = displayName?.[0]?.toUpperCase() || 'U'
-            return `https://getstream.io/random_png/?name=${letter}`
-        }
-        return user?.imageUrl || ''
-    }, [avatarType, customAvatar, user, displayName])
-
-    async function submit() {
-        if (!displayName || loading) return
-        setLoading(true)
-
-        const res = await fetch('/api/profile/update', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                displayName,
-                image: avatar,
-                bio,
-                quote,
-                pronouns,
-                banner
-            })
-        })
-
-        if (res.ok) router.push('/dashboard')
-        setLoading(false)
-    }
-
-    if (!isLoaded || !user) return null
-
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-[#5865F2] p-4">
-            <div className="w-full max-w-[420px] bg-[#313338] rounded-lg overflow-hidden shadow-2xl">
-
-                {/* Banner Section */}
-                <div className="relative h-28 bg-[#202225] flex items-center justify-center">
-                    {banner ? (
-                        <Image src={banner} alt="" fill className="object-cover" />
-                    ) : (
-                        <span className="text-gray-500 text-xs font-bold uppercase">No Banner</span>
-                    )}
-
-                    <div className="absolute top-2 right-2 opacity-80 hover:opacity-100 transition">
-                        <UploadButton
-                            endpoint="bannerUploader"
-                            onClientUploadComplete={(res) => setBanner(res[0].url)}
-                            appearance={{
-                                button: "bg-[#313338] text-[10px] px-2 h-8 after:bg-none",
-                                allowedContent: "hidden"
-                            }}
-                            content={{ button: "Upload Banner" }}
-                        />
-                    </div>
-
-                    {/* Avatar Circle */}
-                    <div className="absolute -bottom-10 left-6 w-20 h-20 rounded-full border-4 border-[#313338] overflow-hidden bg-[#202225] z-10">
-                        <Image src={avatar} alt="" fill className="object-cover" />
-                    </div>
-                </div>
-
-                <div className="pt-14 px-6 pb-6 space-y-5">
-
-                    {/* Username Display */}
-                    <div className="mt-2 text-sm font-medium text-white/50 pl-1">
-                        @{user?.username}
-                    </div>
-
-                    {/* Avatar Selector */}
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase">Profile Picture</label>
-                        <div className="flex gap-2 p-1 bg-[#1e1f22] rounded-md">
-                            {(['clerk', 'stream', 'custom'] as const).map((type) => (
-                                <button
-                                    key={type}
-                                    onClick={() => setAvatarType(type)}
-                                    className={`flex-1 py-1 text-xs rounded transition ${avatarType === type ? 'bg-[#5865F2] text-white' : 'text-gray-400 hover:text-gray-200'
-                                        }`}
-                                >
-                                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                                </button>
-                            ))}
-                        </div>
-                        {avatarType === 'custom' && (
-                            <UploadButton
-                                endpoint="avatarUploader"
-                                onClientUploadComplete={(res) => setCustomAvatar(res[0].url)}
-                                appearance={{
-                                    button: "bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs font-medium px-4 py-2 rounded h-auto w-auto transition",
-                                    allowedContent: "hidden"
-                                }}
-                                content={{
-                                    button: "Choose File"
-                                }}
-                            />
-                        )}
-                    </div>
-
-                    {/* Inputs */}
-                    <div className="space-y-3">
-                        <input
-                            value={displayName}
-                            onChange={(e) => setDisplayName(e.target.value)}
-                            placeholder="Display name"
-                            className="w-full bg-[#1e1f22] text-white px-3 py-2 rounded focus:outline-none"
-                        />
-                        <div className="flex gap-2">
-                            <input
-                                value={pronouns}
-                                onChange={(e) => setPronouns(e.target.value)}
-                                placeholder="Pronouns"
-                                className="w-1/3 bg-[#1e1f22] text-white px-3 py-2 rounded focus:outline-none"
-                            />
-                            <input
-                                value={quote}
-                                onChange={(e) => setQuote(e.target.value)}
-                                placeholder="Quote / Status"
-                                className="w-2/3 bg-[#1e1f22] text-white px-3 py-2 rounded focus:outline-none"
-                            />
-                        </div>
-                        <textarea
-                            value={bio}
-                            onChange={(e) => setBio(e.target.value)}
-                            placeholder="Bio"
-                            rows={3}
-                            className="w-full bg-[#1e1f22] text-white px-3 py-2 rounded resize-none focus:outline-none"
-                        />
-                    </div>
-
-                    <button
-                        disabled={!displayName || loading}
-                        onClick={submit}
-                        className="w-full bg-[#248046] hover:bg-[#1a6334] disabled:opacity-50 text-white py-2 rounded font-medium transition"
-                    >
-                        {loading ? 'Saving...' : 'Save Changes'}
-                    </button>
-                    <button
-                        onClick={() => router.back()}
-                        className="w-full text-gray-400 hover:text-gray-200 text-sm transition"
-                    >
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    )
+      <SignedOut>
+        <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', p: 3 }}>
+          <Paper sx={{ p: 3, maxWidth: 420 }}>
+            <Typography variant="h5" fontWeight={800}>
+              Sign in required
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1.1, mb: 2.5 }}>
+              Sign in to open user settings.
+            </Typography>
+            <SignInButton mode="modal">
+              <Button variant="contained">Sign In</Button>
+            </SignInButton>
+          </Paper>
+        </Box>
+      </SignedOut>
+    </>
+  )
 }
