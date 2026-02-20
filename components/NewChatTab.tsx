@@ -26,9 +26,9 @@ export default function NewChatTab({ close }: { close: () => void }) {
       <div className="space-y-4 px-4">
         <div className="cursor-pointer">New group</div>
 
-        <div className="cursor-pointer">New contact</div>
-
         <div className="cursor-pointer">New community</div>
+
+        <div className="cursor-pointer">Add a contact</div>
       </div>
 
       {/* CONTACTS */}
